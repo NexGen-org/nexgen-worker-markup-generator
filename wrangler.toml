@@ -1,0 +1,12 @@
+name = "nexgen-worker-markup-generator"
+account_id = "972efad7c23013678cd1abd3013faf3e"
+workers_dev = false
+compatibility_date = "2025-03-31"
+
+routes = [
+  { pattern = "sample-appss.com/page/*", zone_id = "7633d3868d9987834b593a411b4c8c24" }
+]
+
+[[kv_namespaces]]
+binding = "SITE_KV"
+id = "19ba88680fec4cd1b0900c86d2295dc3"
