@@ -1,3 +1,4 @@
+main = "src/index.ts"
 name = "nexgen-worker-markup-generator"
 account_id = "972efad7c23013678cd1abd3013faf3e"
 workers_dev = false
@@ -10,3 +11,6 @@ routes = [
 [[kv_namespaces]]
 binding = "SITE_KV"
 id = "19ba88680fec4cd1b0900c86d2295dc3"
+
+[env.dev]
+name = "nexgen-worker-markup-generator-dev"
