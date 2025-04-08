@@ -1,5 +1,6 @@
 export interface Env {
 	SITE_KV: KVNamespace;
+	OPENAI_API_KEY: string;
 }
 
 export interface PageContext {
