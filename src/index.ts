@@ -1,7 +1,7 @@
-import { PageContext } from './@types';
+import { PageContext, Env } from './@types';
 
 export default {
-	async fetch(request: Request): Promise<Response> {
+	async fetch(request: Request, env: Env): Promise<Response> {
 		const rawHost = request.headers.get('host');
 		const domain = rawHost?.split(':')[0]; // ← ポート番号を取り除く！
 		const url = new URL(request.url);
@@ -28,38 +28,57 @@ export default {
 
 		const context: PageContext = await contextRes.json();
 
-		const html = `
-		<!DOCTYPE html>
-		<html lang="ja">
-		<head>
-			<meta charset="UTF-8">
-			<title>${context.page.title}</title>
-			<style>
-				body {
-					font-family: sans-serif;
-					padding: 2rem;
-					background: #f9f9f9;
-				}
-				h1 {
-					color: #333;
-				}
-				.content {
-					margin-top: 1rem;
-					font-size: 1.1rem;
-				}
-			</style>
-		</head>
-		<body>
-			<h1>${context.page.title}</h1>
-			<div class="content">
-				${context.page.content}
-			</div>
-		</body>
-		</html>
-		`;
+		const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
-		return new Response(html, {
-			headers: { 'Content-Type': 'text/html' },
+		const styleDirectives = ['高コントラスト配色', 'フォントサイズを大きく', '読みやすい余白', 'シンプルなレイアウト'];
+
+		const prompt = `以下のページデータとスタイル方針に基づいて、HTMLとCSSの構造を生成してください。
+
+ページタイトル: ${context.page.title}
+コンテンツ: ${context.page.content}
+スタイル方針:
+${styleDirectives.map((d) => `- ${d}`).join('\n')}
+
+制約:
+- HTMLとCSSのみを含め、説明文や注釈は含めないこと
+- CSSは外部ファイルにせず、<style>タグ内に含めること
+`;
+		console.log('API KEY SET:', Boolean(env.OPENAI_API_KEY));
+		console.log(env.OPENAI_API_KEY);
+		const openaiRes = await fetch(OPENAI_API_URL, {
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${env.OPENAI_API_KEY}`,
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				model: 'gpt-4o',
+				messages: [
+					{ role: 'system', content: 'あなたはHTML/CSSデザイナーです。' },
+					{ role: 'user', content: prompt },
+				],
+				temperature: 0.7,
+			}),
+		});
+
+		if (!openaiRes.ok) {
+			const errorText = await openaiRes.text(); // レスポンス内容を確認
+			console.error('OpenAI API error:', openaiRes.status, errorText);
+			return new Response(`OpenAI API error: ${openaiRes.statusText}`, { status: 500 });
+		}
+
+		const result = (await openaiRes.json()) as {
+			choices: Array<{
+				message: {
+					content: string;
+				};
+			}>;
+		};
+		let htmlContent = result.choices?.[0]?.message?.content || '';
+		htmlContent = htmlContent.replace(/```[a-z]*\n?/g, '').replace(/```/g, '');
+
+		return new Response(htmlContent, {
+			headers: { 'Content-Type': 'text/html; charset=utf-8' },
 		});
 	},
 };
