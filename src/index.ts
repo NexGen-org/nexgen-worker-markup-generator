@@ -17,7 +17,6 @@ export default {
 		const pageId = pathParts[1];
 
 		const contextUrl = `https://nexgen-worker-data-transform.nexgen-data-transform.workers.dev/context/${domain}/${pageId}`;
-		console.log(contextUrl);
 
 		// 🔁 外部WorkerへHTTP fetch（データ取得）
 		const contextRes = await fetch(contextUrl);
@@ -43,8 +42,6 @@ ${styleDirectives.map((d) => `- ${d}`).join('\n')}
 - HTMLとCSSのみを含め、説明文や注釈は含めないこと
 - CSSは外部ファイルにせず、<style>タグ内に含めること
 `;
-		console.log('API KEY SET:', Boolean(env.OPENAI_API_KEY));
-		console.log(env.OPENAI_API_KEY);
 		const openaiRes = await fetch(OPENAI_API_URL, {
 			method: 'POST',
 			headers: {
